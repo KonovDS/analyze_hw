@@ -97,6 +97,26 @@ class Predictor {
     }
     return ret;
   }
+
+  int FalsePosititves(const Data& d) const {
+    int ret = 0;
+    for(int i = 0; i < d.Size(); i++) {
+      if (d[i].second == 0 && Predict(d[i].first) == 1) {
+        ret++;
+      }
+    }
+    return ret;
+  }
+
+  int TruePositives(const Data& d) const {
+    int ret = 0;
+    for(int i = 0; i < d.Size(); i++) {
+      if (d[i].second == 1 && Predict(d[i].first) == 1) {
+        ret++;
+      }
+    }
+    return ret;
+  }
 };
 
 void WriteOutExperimentResults(const std::string &s, double from, double to, double step, const Data &d) {
@@ -117,7 +137,7 @@ void WriteOutExperimentResults(const std::string &s, double from, double to, dou
   fs.close();
 }
 
-void ROCAUCGraphWriteOut(const std::string &s, const Data &d, const Predictor &p) {
+void ROCAUCGraphWriteOut(const std::string &s, const Data &d, const Predictor &p, int pos, int neg) {
   std::ofstream fs;
   fs.open(s);
   if (!fs.is_open()) {
@@ -134,7 +154,7 @@ void ROCAUCGraphWriteOut(const std::string &s, const Data &d, const Predictor &p
     } else {
       continue;
     }
-    fs << x << "," << y << "\n";
+    fs << static_cast<double>(x)/pos << "," << static_cast<double>(y)/neg << "\n";
   }
   fs.close();
 }
@@ -151,7 +171,8 @@ int main() {
     WriteOutExperimentResults("exp2.csv", 0.0, 1.0, 0.01, d_1);
   }
   d.Sort();
-  //ROCAUCGraphWriteOut("exp2.csv", d, Predictor(0.5));
-  //ROCAUCGraphWriteOut("exp3.csv", d, Predictor(0));
+  Predictor p = Predictor(0.5);
+  ROCAUCGraphWriteOut("exp3.csv", d, p, p.TruePositives(d), p.FalsePosititves(d));
+  //PRGraphWriteOut("exp4.csv", d, p, p.TruePositives(d), p.FalsePosititves(d));
   return 0;
 }
